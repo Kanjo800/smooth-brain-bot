@@ -232,9 +232,9 @@ class Game:
         else:
             messages.append(f"The current bet to meet is ${self.cur_bet}.")
         if self.current_player.cur_bet == self.cur_bet:
-            messages.append("Message !check, !raise or !fold.")
+            messages.append("Message !check, !strip, !raise or !fold.")
         elif self.current_player.max_bet > self.cur_bet:
-            messages.append("Message !call, !raise or !fold.")
+            messages.append("Message !call, !strip, !raise or !fold.")
         else:
             messages.append("Message !all-in or !fold.")
         return messages
@@ -350,11 +350,19 @@ class Game:
         else:
             return self.raise_bet(self.current_player.max_bet - self.cur_bet)
 
+    # Has the current player strip
+    def strip(self) -> List[str]:
+        messages = [f"{self.current_player.name} strips."]
+        self.current_player.balance += 10
+        return messages + self.cur_options()
+
     # Has the current player fold their hand
     def fold(self) -> List[str]:
         messages = [f"{self.current_player.name} has folded."]
         self.pot.handle_fold(self.current_player)
         self.leave_hand(self.current_player)
+
+    
 
         # If only one person is left in the pot, give it to them instantly
         if len(self.pot.in_pot()) == 1:
