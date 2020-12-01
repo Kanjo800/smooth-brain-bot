@@ -6,7 +6,7 @@ import discord
 
 from game import Game, GAME_OPTIONS, GameState
 
-POKER_BOT_TOKEN = "Nzc5Mjk3NDE4ODU5OTA1MDMy.X7efRw.yXoUkoRaUXKcndC3ZsnjMm8jkpI"
+
 
 client = discord.Client()
 games: Dict[discord.TextChannel, Game] = {}
