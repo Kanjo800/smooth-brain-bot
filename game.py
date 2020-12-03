@@ -232,9 +232,9 @@ class Game:
         else:
             messages.append(f"The current bet to meet is ${self.cur_bet}.")
         if self.current_player.cur_bet == self.cur_bet:
-            messages.append("Message !check, !strip, !raise or !fold.")
+            messages.append("Message !check, !strip, !bind, !raise or !fold.")
         elif self.current_player.max_bet > self.cur_bet:
-            messages.append("Message !call, !strip, !raise or !fold.")
+            messages.append("Message !call, !strip, !bind, !raise or !fold.")
         else:
             messages.append("Message !all-in or !fold.")
         return messages
@@ -352,9 +352,26 @@ class Game:
 
     # Has the current player strip
     def strip(self) -> List[str]:
-        messages = [f"{self.current_player.name} strips."]
-        self.current_player.balance += 10
-        return messages + self.cur_options()
+        if self.current_player.stripcount > 3:
+            messages = [f"{self.current_player.name} cannot strip, they are naked!"]
+            return messages
+        else:
+            messages = [f"{self.current_player.name} strips."]
+            self.current_player.balance += 10
+            self.current_player.stripcount += 1
+            return messages + self.cur_options()
+
+    # Has the current player bind
+    def bind(self) -> List[str]:
+        if self.current_player.bindcount > 3:
+            messages = [f"{self.current_player.name} cannot be bound further...they are completely tied up!"]
+            return messages
+        else:
+            messages = [f"{self.current_player.name} gets tied up."]
+            self.current_player.balance += 10
+            self.current_player.bindcount += 1
+            return messages + self.cur_options()
+
 
     # Has the current player fold their hand
     def fold(self) -> List[str]:
@@ -384,5 +401,5 @@ class Game:
         # Send a message to each player, telling them what their hole cards are
     async def tell_hands(self):
         for player in self.players:
-            await player.user.send(str(player.cards[0]) + "  "
+            await player.user.send ("Your Hand:" + str(player.cards[0]) + "  "
                                  + str(player.cards[1]))

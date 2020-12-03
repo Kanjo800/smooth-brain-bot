@@ -119,6 +119,26 @@ def strip_bet(game: Game, message: discord.Message) -> List[str]:
     else:
         return game.strip()
 
+# Handles a playerbinding, giving an appropriate error message if the
+# user is not the current player or betting hadn't started. Returns the list of
+# messages the bot should say.
+def bind_bet(game: Game, message: discord.Message) -> List[str]:
+    if game.state == GameState.NO_GAME:
+        return ["No game has been started yet. Message !newgame to start one."]
+    elif game.state == GameState.WAITING:
+        return ["You can't bind because the game hasn't started yet."]
+    elif not game.is_player(message.author):
+        return ["You can't bind, because you're not playing, "
+                f"{message.author.name}."]
+    elif game.state == GameState.NO_HANDS:
+        return ["You can't bind because the hands haven't been "
+                "dealt yet."]
+    elif game.current_player.user != message.author:
+        return [f"You can't bind {message.author.name}, because it's "
+                f"{game.current_player.user.name}'s turn."]
+    else:
+        return game.bind()
+
 # Has a player check, giving an error message if the player cannot check.
 # Returns the list of messages the bot should say.
 def check(game: Game, message: discord.Message) -> List[str]:
@@ -286,6 +306,8 @@ commands: Dict[str, Command] = {
                         call_bet),
     '!strip':    Command('increases balance by 10',
                         strip_bet),
+    '!bind':    Command('increases balance by 10',
+                        bind_bet),
     '!raise':   Command('Increase the size of current bet',
                         raise_bet),
     '!check':   Command('Bet no money',

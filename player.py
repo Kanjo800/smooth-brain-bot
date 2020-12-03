@@ -17,6 +17,10 @@ class Player:
         self.cur_bet = 0
         # Whether the player has placed a bet yet this round
         self.placed_bet = False
+        # the count for !strip
+        self.stripcount = 0
+         # the count for !bind
+        self.bindcount = 0
 
     @property
     def name(self) -> str:
