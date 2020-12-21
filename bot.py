@@ -1,19 +1,26 @@
 from collections import namedtuple
-import os
-from typing import Dict, List
+from typing import Dict, List, TYPE_CHECKING
 
 import discord
 
 from game import Game, GAME_OPTIONS, GameState
 
+if TYPE_CHECKING:
+    from discord import Message
 
 
 client = discord.Client()
 games: Dict[discord.TextChannel, Game] = {}
 
-# Starts a new game if one hasn't been started yet, returning an error message
-# if a game has already been started. Returns the messages the bot should say
+
 def new_game(game: Game, message: discord.Message) -> List[str]:
+    """Starts a new game if one hasn't been started yet.
+
+    Returns:
+        Error message if a game has already been started.
+        Otherwise, what the bot should say.
+    """
+
     if game.state == GameState.NO_GAME:
         game.new_game()
         game.add_player(message.author)
@@ -28,10 +35,15 @@ def new_game(game: Game, message: discord.Message) -> List[str]:
                             "message !join to join that game.")
         return messages
 
-# Has a user try to join a game about to begin, giving an error if they've
-# already joined or the game can't be joined. Returns the list of messages the
-# bot should say
+
 def join_game(game: Game, message: discord.Message) -> List[str]:
+    """Has a user try to join a game about to begin.
+
+    Returns:
+        Error message if they have already joined or the game can't be joined.
+        Otherwise, list of messages the bot should say.
+    """
+
     if game.state == GameState.NO_GAME:
         return ["No game has been started yet for you to join.",
                 "Message !newgame to start a new game."]
@@ -326,12 +338,14 @@ commands: Dict[str, Command] = {
                         all_in),
 }
 
+
 @client.event
 async def on_ready():
     print("Poker bot ready!")
 
+
 @client.event
-async def on_message(message):
+async def on_message(message: 'Message'):
     # Ignore messages sent by the bot itself
     if message.author == client.user:
         return
@@ -344,6 +358,13 @@ async def on_message(message):
     if is_private:
         return
 
+    # If on CC, ignore other channels
+    if message.guild.id == 695460634405371955:
+        # horni-jail ID: 695823498009903124
+        # kanjos-kasino ID: 760063437291782195
+        if message.channel.id not in [695823498009903124, 760063437291782195]:
+            return
+
     command = message.content.split()[0]
     if command[0] == '!':
         if command not in commands:
@@ -355,7 +376,7 @@ async def on_message(message):
         messages = commands[command][1](game, message)
 
         # The messages to send to the channel and the messages to send to the
-        # players individually must be done seperately, so we check the messages
+        # players individually must be done separately, so we check the messages
         # to the channel to see if hands were just dealt, and if so, we tell the
         # players what their hands are.
         if command == '!deal' and messages[0] == 'The hands have been dealt!':
