@@ -1,12 +1,19 @@
 from collections import namedtuple
+import os
 from typing import Dict, List, TYPE_CHECKING
 
 import discord
+
+from dotenv import load_dotenv
 
 from game import Game, GAME_OPTIONS, GameState
 
 if TYPE_CHECKING:
     from discord import Message
+
+
+load_dotenv()
+POKER_BOT_TOKEN = os.getenv('DISCORD_TOKEN')
 
 
 client = discord.Client()
