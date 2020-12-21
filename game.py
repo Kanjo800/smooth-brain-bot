@@ -104,8 +104,8 @@ class Game:
     def status_between_rounds(self) -> List[str]:
         messages = []
         for player in self.players:
-            messages.append(f"{player.user.name} has ${player.balance}.")
-        messages.append(f"{self.dealer.user.name} is the current dealer. "
+            messages.append(f"{player.user.display_name} has ${player.balance}.")
+        messages.append(f"{self.dealer.user.display_name} is the current dealer. "
                         "Message !deal to deal when you're ready.")
         return messages
 
@@ -204,30 +204,30 @@ class Game:
             self.turn_index = self.dealer_index
             self.first_bettor = self.dealer_index - 1
 
-        messages.append(f"{small_player.name} has paid the small blind "
+        messages.append(f"{small_player.user.display_name} has paid the small blind "
                         f"of ${blind}.")
 
         if self.pot.pay_blind(small_player, blind):
-            messages.append(f"{small_player.name} is all in!")
+            messages.append(f"{small_player.user.display_name} is all in!")
             self.leave_hand(small_player)
 
-        messages.append(f"{big_player.name} has paid the big blind "
+        messages.append(f"{big_player.user.display_name} has paid the big blind "
                         f"of ${blind * 2}.")
         if self.pot.pay_blind(big_player, blind * 2):
-            messages.append(f"{big_player.name} is all in!")
+            messages.append(f"{big_player.user.display_name} is all in!")
             self.leave_hand(big_player)
 
         return messages
 
     # Returns messages telling the current player their options
     def cur_options(self) -> List[str]:
-        messages = [f"It is {self.current_player.name}'s turn. "
-                    f"{self.current_player.user.name} currently has "
-                    f"${self.current_player.balance}. "
+        messages = [f"It is {self.current_player.user.display_name}'s turn.\n"
+                    f"{self.current_player.user.display_name} currently has"
+                    f"${self.current_player.balance}.\n"
                     f"The pot is currently ${self.pot.value}."]
         if self.pot.cur_bet > 0:
             messages.append(f"The current bet to meet is ${self.cur_bet}, "
-                            f"and {self.current_player.name} has bet "
+                            f"and {self.current_player.user.display_name} has bet "
                             f"${self.current_player.cur_bet}.")
         else:
             messages.append(f"The current bet to meet is ${self.cur_bet}.")
@@ -286,13 +286,13 @@ class Game:
         messages.append("  ".join(str(card) for card in self.shared_cards))
 
         for player in self.pot.in_pot():
-            messages.append(f"{player.name}'s hand: "
+            messages.append(f"{player.user.display_name}'s hand: "
                             f"{player.cards[0]}  {player.cards[1]}")
 
         winners = self.pot.get_winners(self.shared_cards)
         for winner, winnings in sorted(winners.items(), key=lambda item: item[1]):
             hand_name = str(best_possible_hand(self.shared_cards, winner.cards))
-            messages.append(f"{winner.name} wins ${winnings} with a {hand_name}.")
+            messages.append(f"{winner.user.display_name} wins ${winnings} with a {hand_name}.")
             winner.balance += winnings
 
         # Remove players that went all in and lost
@@ -302,11 +302,11 @@ class Game:
             if player.balance > 0:
                 i += 1
             else:
-                messages.append(f"{player.name} has been knocked out of the game!")
+                messages.append(f"{player.user.display_name} has been knocked out of the game!")
                 self.players.pop(i)
                 if len(self.players) == 1:
                     # There's only one player, so they win
-                    messages.append(f"{self.players[0].user.name} wins the game! "
+                    messages.append(f"{self.players[0].user.display_name} wins the game! "
                                     "Congratulations!")
                     self.state = GameState.NO_GAME
                     return messages
@@ -322,14 +322,14 @@ class Game:
     # Make the current player check, betting no additional money
     def check(self) -> List[str]:
         self.current_player.placed_bet = True
-        return [f"{self.current_player.name} checks."] + self.next_turn()
+        return [f"{self.current_player.user.display_name} checks."] + self.next_turn()
 
     # Has the current player raise a certain amount
     def raise_bet(self, amount: int) -> List[str]:
         self.pot.handle_raise(self.current_player, amount)
-        messages = [f"{self.current_player.name} raises by ${amount}."]
+        messages = [f"{self.current_player.user.display_name} raises by ${amount}."]
         if self.current_player.balance == 0:
-            messages.append(f"{self.current_player.name} is all in!")
+            messages.append(f"{self.current_player.user.display_name} is all in!")
             self.leave_hand(self.current_player)
             self.turn_index -= 1
         return messages + self.next_turn()
@@ -337,9 +337,9 @@ class Game:
     # Has the current player match the current bet
     def call(self) -> List[str]:
         self.pot.handle_call(self.current_player)
-        messages = [f"{self.current_player.name} calls."]
+        messages = [f"{self.current_player.user.display_name} calls."]
         if self.current_player.balance == 0:
-            messages.append(f"{self.current_player.name} is all in!")
+            messages.append(f"{self.current_player.user.display_name} is all in!")
             self.leave_hand(self.current_player)
             self.turn_index -= 1
         return messages + self.next_turn()
@@ -353,10 +353,10 @@ class Game:
     # Has the current player strip
     def strip(self) -> List[str]:
         if self.current_player.stripcount > 3:
-            messages = [f"{self.current_player.name} cannot strip, they are naked!"]
+            messages = [f"{self.current_player.user.display_name} cannot strip, they are naked!"]
             return messages
         else:
-            messages = [f"{self.current_player.name} strips."]
+            messages = [f"{self.current_player.user.display_name} strips."]
             self.current_player.balance += 10
             self.current_player.stripcount += 1
             return messages + self.cur_options()
@@ -364,10 +364,10 @@ class Game:
     # Has the current player bind
     def bind(self) -> List[str]:
         if self.current_player.bindcount > 3:
-            messages = [f"{self.current_player.name} cannot be bound further...they are completely tied up!"]
+            messages = [f"{self.current_player.user.display_name} cannot be bound further...they are completely tied up!"]
             return messages
         else:
-            messages = [f"{self.current_player.name} gets tied up."]
+            messages = [f"{self.current_player.user.display_name} gets tied up."]
             self.current_player.balance += 10
             self.current_player.bindcount += 1
             return messages + self.cur_options()
@@ -375,7 +375,7 @@ class Game:
 
     # Has the current player fold their hand
     def fold(self) -> List[str]:
-        messages = [f"{self.current_player.name} has folded."]
+        messages = [f"{self.current_player.user.display_name} has folded."]
         self.pot.handle_fold(self.current_player)
         self.leave_hand(self.current_player)
 
@@ -384,7 +384,7 @@ class Game:
         # If only one person is left in the pot, give it to them instantly
         if len(self.pot.in_pot()) == 1:
             winner = list(self.pot.in_pot())[0]
-            messages += [f"{winner.name} wins ${self.pot.value}!"]
+            messages += [f"{winner.user.display_name} wins ${self.pot.value}!"]
             winner.balance += self.pot.value
             self.state = GameState.NO_HANDS
             self.next_dealer()

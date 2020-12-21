@@ -18,7 +18,7 @@ def new_game(game: Game, message: discord.Message) -> List[str]:
         game.new_game()
         game.add_player(message.author)
         game.state = GameState.WAITING
-        return [f"A new game has been started by {message.author.name}!",
+        return [f"A new game has been started by {message.author.display_name}!",
                 "Message !join to join the game."]
     else:
         messages = ["There is already a game in progress, "
@@ -36,14 +36,14 @@ def join_game(game: Game, message: discord.Message) -> List[str]:
         return ["No game has been started yet for you to join.",
                 "Message !newgame to start a new game."]
     elif game.state != GameState.WAITING:
-        return [f"The game is already in progress, {message.author.name}.",
+        return [f"The game is already in progress, {message.author.display_name}.",
                 "You're not allowed to join right now."]
     elif game.add_player(message.author):
-        return [f"{message.author.name} has joined the game!",
+        return [f"{message.author.display_name} has joined the game!",
                 "Message !join to join the game, "
                 "or !start to start the game."]
     else:
-        return [f"You've already joined the game {message.author.name}!"]
+        return [f"You've already joined the game {message.author.display_name}!"]
 
 # Starts a game, so long as one hasn't already started, and there are enough
 # players joined to play. Returns the messages the bot should say.
@@ -51,10 +51,10 @@ def start_game(game: Game, message: discord.Message) -> List[str]:
     if game.state == GameState.NO_GAME:
         return ["Message !newgame if you would like to start a new game."]
     elif game.state != GameState.WAITING:
-        return [f"The game has already started, {message.author.name}.",
+        return [f"The game has already started, {message.author.display_name}.",
                 "It can't be started twice."]
     elif not game.is_player(message.author):
-        return [f"You are not a part of that game yet, {message.author.name}.",
+        return [f"You are not a part of that game yet, {message.author.display_name}.",
                 "Please message !join if you are interested in playing."]
     elif len(game.players) < 2:
         return ["The game must have at least two players before "
@@ -74,8 +74,8 @@ def deal_hand(game: Game, message: discord.Message) -> List[str]:
     elif game.state != GameState.NO_HANDS:
         return ["The cards have already been dealt."]
     elif game.dealer.user != message.author:
-        return [f"You aren't the dealer, {message.author.name}.",
-                f"Please wait for {game.dealer.user.name} to !deal."]
+        return [f"You aren't the dealer, {message.author.display_name}.",
+                f"Please wait for {game.dealer.user.display_name} to !deal."]
     else:
         return game.deal_hands()
 
@@ -89,13 +89,13 @@ def call_bet(game: Game, message: discord.Message) -> List[str]:
         return ["You can't call any bets because the game hasn't started yet."]
     elif not game.is_player(message.author):
         return ["You can't call, because you're not playing, "
-                f"{message.author.name}."]
+                f"{message.author.display_name}."]
     elif game.state == GameState.NO_HANDS:
         return ["You can't call any bets because the hands haven't been "
                 "dealt yet."]
     elif game.current_player.user != message.author:
-        return [f"You can't call {message.author.name}, because it's "
-                f"{game.current_player.user.name}'s turn."]
+        return [f"You can't call {message.author.display_name}, because it's "
+                f"{game.current_player.user.display_name}'s turn."]
     else:
         return game.call()
 
@@ -109,13 +109,13 @@ def strip_bet(game: Game, message: discord.Message) -> List[str]:
         return ["You can't strip because the game hasn't started yet."]
     elif not game.is_player(message.author):
         return ["You can't strip, because you're not playing, "
-                f"{message.author.name}."]
+                f"{message.author.display_name}."]
     elif game.state == GameState.NO_HANDS:
         return ["You can't strip because the hands haven't been "
                 "dealt yet."]
     elif game.current_player.user != message.author:
-        return [f"You can't strip {message.author.name}, because it's "
-                f"{game.current_player.user.name}'s turn."]
+        return [f"You can't strip {message.author.display_name}, because it's "
+                f"{game.current_player.user.display_name}'s turn."]
     else:
         return game.strip()
 
@@ -129,12 +129,12 @@ def bind_bet(game: Game, message: discord.Message) -> List[str]:
         return ["You can't bind because the game hasn't started yet."]
     elif not game.is_player(message.author):
         return ["You can't bind, because you're not playing, "
-                f"{message.author.name}."]
+                f"{message.author.display_name}."]
     elif game.state == GameState.NO_HANDS:
         return ["You can't bind because the hands haven't been "
                 "dealt yet."]
     elif game.current_player.user != message.author:
-        return [f"You can't bind {message.author.name}, because it's "
+        return [f"You can't bind {message.author.display_name}, because it's "
                 f"{game.current_player.user.name}'s turn."]
     else:
         return game.bind()
@@ -148,14 +148,14 @@ def check(game: Game, message: discord.Message) -> List[str]:
         return ["You can't check because the game hasn't started yet."]
     elif not game.is_player(message.author):
         return ["You can't check, because you're not playing, "
-                f"{message.author.name}."]
+                f"{message.author.display_name}."]
     elif game.state == GameState.NO_HANDS:
         return ["You can't check because the hands haven't been dealt yet."]
     elif game.current_player.user != message.author:
-        return [f"You can't check, {message.author.name}, because it's "
-                f"{game.current_player.user.name}'s turn."]
+        return [f"You can't check, {message.author.display_name}, because it's "
+                f"{game.current_player.user.display_name}'s turn."]
     elif game.current_player.cur_bet != game.cur_bet:
-        return [f"You can't check, {message.author.name} because you need to "
+        return [f"You can't check, {message.author.display_name} because you need to "
                 f"put in ${game.cur_bet - game.current_player.cur_bet} to "
                 "call."]
     else:
@@ -170,12 +170,12 @@ def raise_bet(game: Game, message: discord.Message) -> List[str]:
         return ["You can't raise because the game hasn't started yet."]
     elif not game.is_player(message.author):
         return ["You can't raise, because you're not playing, "
-                f"{message.author.name}."]
+                f"{message.author.display_name}."]
     elif game.state == GameState.NO_HANDS:
         return ["You can't raise because the hands haven't been dealt yet."]
     elif game.current_player.user != message.author:
-        return [f"You can't raise, {message.author.name}, because it's "
-                f"{game.current_player.name}'s turn."]
+        return [f"You can't raise, {message.author.display_name}, because it's "
+                f"{game.current_player.display_name}'s turn."]
 
     tokens = message.content.split()
     if len(tokens) < 2:
@@ -205,12 +205,12 @@ def fold_hand(game: Game, message: discord.Message) -> List[str]:
         return ["You can't fold yet because the game hasn't started yet."]
     elif not game.is_player(message.author):
         return ["You can't fold, because you're not playing, "
-                f"{message.author.name}."]
+                f"{message.author.display_name}."]
     elif game.state == GameState.NO_HANDS:
         return ["You can't fold yet because the hands haven't been dealt yet."]
     elif game.current_player.user != message.author:
-        return [f"You can't fold {message.author.name}, because it's "
-                f"{game.current_player.name}'s turn."]
+        return [f"You can't fold {message.author.display_name}, because it's "
+                f"{game.current_player.display_name}'s turn."]
     else:
         return game.fold()
 
@@ -267,7 +267,7 @@ def chip_count(game: Game, message: discord.Message) -> List[str]:
     if game.state in (GameState.NO_GAME, GameState.WAITING):
         return ["You can't request a chip count because the game "
                 "hasn't started yet."]
-    return [f"{player.user.name} has ${player.balance}."
+    return [f"{player.user.display_name} has ${player.balance}."
             for player in game.players]
 
 # Handles a player going all-in, returning an error message if the player
@@ -280,13 +280,13 @@ def all_in(game: Game, message: discord.Message) -> List[str]:
         return ["You can't go all in because the game hasn't started yet."]
     elif not game.is_player(message.author):
         return ["You can't go all in, because you're not playing, "
-                f"{message.author.name}."]
+                f"{message.author.display_name}."]
     elif game.state == GameState.NO_HANDS:
         return ["You can't go all in because the hands haven't "
                 "been dealt yet."]
     elif game.current_player.user != message.author:
-        return [f"You can't go all in, {message.author.name}, because "
-                f"it's {game.current_player.user.name}'s turn."]
+        return [f"You can't go all in, {message.author.display_name}, because "
+                f"it's {game.current_player.user.display_name}'s turn."]
     else:
         return game.all_in()
 
