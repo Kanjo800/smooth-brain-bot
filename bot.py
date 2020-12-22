@@ -11,23 +11,18 @@ from game import Game, GAME_OPTIONS, GameState
 if TYPE_CHECKING:
     from discord import Message
 
+client = discord.Client()
+games: Dict[discord.TextChannel, Game] = {}
 
 load_dotenv()
 POKER_BOT_TOKEN = os.getenv('DISCORD_TOKEN')
 
 
-client = discord.Client()
-games: Dict[discord.TextChannel, Game] = {}
 
 
+# Starts a new game if one hasn't been started yet, returning an error message
+# if a game has already been started. Returns the messages the bot should say
 def new_game(game: Game, message: discord.Message) -> List[str]:
-    """Starts a new game if one hasn't been started yet.
-
-    Returns:
-        Error message if a game has already been started.
-        Otherwise, what the bot should say.
-    """
-
     if game.state == GameState.NO_GAME:
         game.new_game()
         game.add_player(message.author)
@@ -42,15 +37,10 @@ def new_game(game: Game, message: discord.Message) -> List[str]:
                             "message !join to join that game.")
         return messages
 
-
+# Has a user try to join a game about to begin, giving an error if they've
+# already joined or the game can't be joined. Returns the list of messages the
+# bot should say
 def join_game(game: Game, message: discord.Message) -> List[str]:
-    """Has a user try to join a game about to begin.
-
-    Returns:
-        Error message if they have already joined or the game can't be joined.
-        Otherwise, list of messages the bot should say.
-    """
-
     if game.state == GameState.NO_GAME:
         return ["No game has been started yet for you to join.",
                 "Message !newgame to start a new game."]
@@ -345,11 +335,9 @@ commands: Dict[str, Command] = {
                         all_in),
 }
 
-
 @client.event
 async def on_ready():
     print("Poker bot ready!")
-
 
 @client.event
 async def on_message(message: 'Message'):
@@ -365,7 +353,7 @@ async def on_message(message: 'Message'):
     if is_private:
         return
 
-    # If on CC, ignore other channels
+ # If on CC, ignore other channels
     if message.guild.id == 695460634405371955:
         # horni-jail ID: 695823498009903124
         # kanjos-kasino ID: 760063437291782195
