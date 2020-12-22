@@ -1,24 +1,15 @@
 from collections import namedtuple
 import os
-from typing import Dict, List, TYPE_CHECKING
+from typing import Dict, List
 
 import discord
 
-from dotenv import load_dotenv
-
 from game import Game, GAME_OPTIONS, GameState
 
-if TYPE_CHECKING:
-    from discord import Message
+POKER_BOT_TOKEN = 
 
 client = discord.Client()
 games: Dict[discord.TextChannel, Game] = {}
-
-load_dotenv()
-POKER_BOT_TOKEN = os.getenv('DISCORD_TOKEN')
-
-
-
 
 # Starts a new game if one hasn't been started yet, returning an error message
 # if a game has already been started. Returns the messages the bot should say
@@ -340,7 +331,7 @@ async def on_ready():
     print("Poker bot ready!")
 
 @client.event
-async def on_message(message: 'Message'):
+async def on_message(message):
     # Ignore messages sent by the bot itself
     if message.author == client.user:
         return
@@ -353,7 +344,7 @@ async def on_message(message: 'Message'):
     if is_private:
         return
 
- # If on CC, ignore other channels
+# If on CC, ignore other channels
     if message.guild.id == 695460634405371955:
         # horni-jail ID: 695823498009903124
         # kanjos-kasino ID: 760063437291782195
@@ -371,7 +362,7 @@ async def on_message(message: 'Message'):
         messages = commands[command][1](game, message)
 
         # The messages to send to the channel and the messages to send to the
-        # players individually must be done separately, so we check the messages
+        # players individually must be done seperately, so we check the messages
         # to the channel to see if hands were just dealt, and if so, we tell the
         # players what their hands are.
         if command == '!deal' and messages[0] == 'The hands have been dealt!':
