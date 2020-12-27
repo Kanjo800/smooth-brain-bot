@@ -222,7 +222,7 @@ class Game:
     # Returns messages telling the current player their options
     def cur_options(self) -> List[str]:
         messages = [f"It is {self.current_player.user.display_name}'s turn.\n"
-                    f"{self.current_player.user.display_name} currently has"
+                    f"{self.current_player.user.display_name} currently has "
                     f"${self.current_player.balance}.\n"
                     f"The pot is currently ${self.pot.value}."]
         if self.pot.cur_bet > 0:
