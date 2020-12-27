@@ -1,17 +1,16 @@
-from collections import namedtuple
 import os
-from typing import Dict, List, TYPE_CHECKING
+import traceback
+
+from typing import TYPE_CHECKING
 
 import discord
 
 from discord.ext.commands import Bot, CommandNotFound
 from dotenv import load_dotenv
 
-
 if TYPE_CHECKING:
     from discord import Message
 
-# bot = Bot(command_prefix="!")
 
 load_dotenv()
 POKER_BOT_TOKEN = os.getenv('DISCORD_TOKEN')
@@ -19,7 +18,7 @@ POKER_BOT_TOKEN = os.getenv('DISCORD_TOKEN')
 
 class WolfoBot(Bot):
     def __init__(self):
-        super().__init__(command_prefix=">")
+        super().__init__(command_prefix="!")
 
     async def on_ready(self):
         print("Poker bot ready!")
@@ -49,12 +48,23 @@ class WolfoBot(Bot):
         ctx = await self.get_context(message)
         await self.invoke(ctx)
 
-    async def on_command_error(self, ctx, exception):
+    async def on_command_error(self, ctx, exception: 'Exception'):
+        """This method handles command errors.
+
+        Every error other than CommandNotFound is just logged into the console.
+        """
+
         if isinstance(exception, CommandNotFound):
             await ctx.send(
                 f"{ctx.message.content} is not a valid command. "
-                "Message !help to see the list of commands."
+                f"Message {ctx.prefix}help to see the list of commands."
             )
+            return
+
+        # spews the exception into the console
+        # invest into logging later? or maybe send a DM to the bot owner?
+        traceback.print_exception(
+            etype=type(exception), value=exception, tb=exception.__traceback__)
 
 
 def main():
